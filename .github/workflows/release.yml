@@ -24,13 +24,13 @@ jobs:
 
       - run: npm run package
 
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+#      - name: Build changelog
+#        id: github_release
+#        uses: mikepenz/release-changelog-builder-action@main
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Create Release
+      - name: Create release
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -38,6 +38,13 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          body: ${{ steps.github_release.outputs.changelog }}
+#          body: ${{ steps.github_release.outputs.changelog }}
           draft: false
           prerelease: false
+
+      - name: Upload release artifacts
+        uses: alexellis/upload-assets@0.2.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        with:
+          asset_paths: '["./bin/*.zip"]'
