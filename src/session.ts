@@ -78,10 +78,8 @@ export default {
 
     // if we are running inside executable binary, change chrome path
     if (typeof (process as any).pkg !== 'undefined') {
-      puppeteerOptions.executablePath = puppeteer.executablePath().replace(
-          /^.*?\/node_modules\/puppeteer\/\.local-chromium/,
-          path.join(path.dirname(process.execPath), 'node_modules/puppeteer/.local-chromium')
-      );
+      const exe = process.platform === "win32" ? 'chrome.exe' : 'chrome';
+      puppeteerOptions.executablePath = path.join(path.dirname(process.execPath), 'chrome', exe)
     }
 
     log.debug('Launching headless browser...')
