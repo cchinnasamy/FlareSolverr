@@ -1,9 +1,9 @@
 name: release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  pull_request:
+    branches:
+      - "*"
 
 jobs:
   build:
@@ -13,20 +13,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Build Changelog
-        id: github_release
-        uses: mikepenz/release-changelog-builder-action@main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      - name: Setup Node
+        uses: actions/setup-node@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: ${{ steps.github_release.outputs.changelog }}
-          draft: false
-          prerelease: false
+          node-version: '14'
+
+      - run: npm install
+      - run: npm run build
+      - run: npm run package
+
+#      - name: Build Changelog
+#        id: github_release
+#        uses: mikepenz/release-changelog-builder-action@main
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+#      - name: Create Release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+#        with:
+#          tag_name: ${{ github.ref }}
+#          release_name: ${{ github.ref }}
+#          body: ${{ steps.github_release.outputs.changelog }}
+#          draft: false
+#          prerelease: false

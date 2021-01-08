@@ -76,6 +76,16 @@ export default {
       puppeteerOptions.userDataDir = prepareBrowserProfile(id)
     }
 
+    const isPkg = typeof (process as any).pkg !== 'undefined'
+    const chromiumExecutablePath = (isPkg
+            ? puppeteer.executablePath().replace(
+                /^.*?\/node_modules\/puppeteer\/\.local-chromium/,
+                path.join(path.dirname(process.execPath), 'node_modules/puppeteer/.local-chromium')
+            )
+            : puppeteer.executablePath()
+    )
+    puppeteerOptions.executablePath = chromiumExecutablePath;
+
     log.debug('Launching headless browser...')
 
     // TODO: maybe access env variable?
