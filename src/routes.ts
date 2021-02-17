@@ -36,6 +36,7 @@ interface BaseRequestAPICall extends BaseAPICall {
   proxy?: any, // TODO: use interface not any
   download?: boolean
   returnOnlyCookies?: boolean
+  rules?: string[]
 }
 
 
@@ -50,6 +51,7 @@ interface ChallengeResolutionResultT {
   response: string,
   cookies: object[]
   userAgent: string
+  image: string
 }
 
 interface ChallengeResolutionT {
@@ -86,7 +88,9 @@ async function resolveChallengeWithTimeout(ctx: RequestContext, params: BaseRequ
   }
 }
 
-async function resolveChallenge(ctx: RequestContext, { url, proxy, download, returnOnlyCookies }: BaseRequestAPICall, page: Page): Promise<ChallengeResolutionT | void> {
+async function resolveChallenge(ctx: RequestContext, params: BaseRequestAPICall, page: Page): Promise<ChallengeResolutionT | void> {
+
+  const { url, proxy, download, returnOnlyCookies } = params
 
   let status = 'ok'
   let message = ''
@@ -109,6 +113,33 @@ async function resolveChallenge(ctx: RequestContext, { url, proxy, download, ret
     message = "Cloudflare " + e.toString();
   }
 
+  await page.setViewport({width: 1920, height: 1080});
+  const {rules}:BaseRequestAPICall = params
+
+  for (let index in rules){
+    var rule = rules[index]
+    const map = new Map(Object.entries(rule));
+    let value = map.get("value")
+    let action = map.get("action")
+    let selector = map.get("selector")
+    if (action == 'click'){
+      await page.click(selector) 
+      await page.waitFor(5000)
+    }
+    if (action == 'type'){
+      console.log("inside type")
+      await page.type(selector, value)
+    }
+    if (action == 'select'){
+      await page.select(selector, value)
+    }
+    if (action == 'press'){
+      await page.keyboard.press('Enter')
+    }
+    console.log(rule)
+  }
+    
+
   const payload: ChallengeResolutionT = {
     status,
     message,
@@ -118,7 +149,8 @@ async function resolveChallenge(ctx: RequestContext, { url, proxy, download, ret
       headers: response.headers(),
       response: null,
       cookies: await page.cookies(),
-      userAgent: await page.evaluate(() => navigator.userAgent)
+      userAgent: await page.evaluate(() => navigator.userAgent),
+      image: await page.screenshot({'fullPage': true, encoding: "base64"})
     }
   }
 
